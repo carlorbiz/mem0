@@ -1,4 +1,4 @@
 import os
 
-USER_ID = os.getenv("USER", "default_user")
+USER_ID = "carla-ai-ecosystem"
 DEFAULT_APP_ID = "openmemory"
