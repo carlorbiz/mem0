@@ -1,0 +1,9 @@
+@echo off
+echo 🚀 Starting Carla's Knowledge Lake API...
+echo.
+echo Installing/updating dependencies...
+pip install -r requirements.txt
+echo.
+echo Starting API server...
+python api_server.py
+pause
