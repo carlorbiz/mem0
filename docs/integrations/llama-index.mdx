@@ -2,12 +2,10 @@
 title: LlamaIndex
 ---
 
-<Snippet file="blank-notif.mdx" />
-
 LlamaIndex supports Mem0 as a [memory store](https://llamahub.ai/l/memory/llama-index-memory-mem0). In this guide, we'll show you how to use it.
 
 <Note type="info">
-  🎉 Exciting news! [**Mem0Memory**](https://docs.llamaindex.ai/en/stable/examples/memory/Mem0Memory/) now supports **ReAct** and **FunctionCalling** agents.
+  [**Mem0Memory**](https://docs.llamaindex.ai/en/stable/examples/memory/Mem0Memory/) now supports **ReAct** and **FunctionCalling** agents.
 </Note>
 
 ### Installation
@@ -15,7 +13,7 @@ LlamaIndex supports Mem0 as a [memory store](https://llamahub.ai/l/memory/llama-
 To install the required package, run:
 
 ```bash
-pip install llama-index-core llama-index-memory-mem0
+pip install llama-index-core llama-index-memory-mem0 python-dotenv
 ```
 
 ### Setup with Mem0 Platform
@@ -27,17 +25,21 @@ Set your Mem0 Platform API key as an environment variable. You can replace `<you
 </Note>
 
 ```python
-os.environ["MEM0_API_KEY"] = "<your-mem0-api-key>"
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
+# os.environ["MEM0_API_KEY"] = "<your-mem0-api-key>"
 ```
 
 Import the necessary modules and create a Mem0Memory instance:
 ```python
 from llama_index.memory.mem0 import Mem0Memory
 
-context = {"user_id": "user_1"}
+context = {"user_id": "alice"}
 memory_from_client = Mem0Memory.from_client(
     context=context,
-    api_key="<your-mem0-api-key>",
     search_msg_limit=4,  # optional, default is 5
 )
 ```
@@ -46,8 +48,8 @@ Context is used to identify the user, agent or the conversation in the Mem0. It 
 
 ```python
 context = {
-    "user_id": "user_1",
-    "agent_id": "agent_1",
+    "user_id": "alice", 
+    "agent_id": "llama_agent_1",
     "run_id": "run_1",
 }
 ```
@@ -80,7 +82,7 @@ config = {
     "llm": {
         "provider": "openai",
         "config": {
-            "model": "gpt-4o",
+            "model": "gpt-4.1-nano-2025-04-14",
             "temperature": 0.2,
             "max_tokens": 2000,
         },
@@ -100,17 +102,20 @@ memory_from_config = Mem0Memory.from_config(
     context=context,
     config=config,
     search_msg_limit=4,  # optional, default is 5
+    # Remove deprecation warnings
 )
 ```
 
 Initialize the LLM
 
 ```python
-import os
 from llama_index.llms.openai import OpenAI
+from dotenv import load_dotenv
 
-os.environ["OPENAI_API_KEY"] = "<your-openai-api-key>"
-llm = OpenAI(model="gpt-4o")
+load_dotenv()
+
+# os.environ["OPENAI_API_KEY"] = "<your-openai-api-key>"
+llm = OpenAI(model="gpt-4.1-nano-2025-04-14")
 ```
 
 ### SimpleChatEngine
@@ -124,7 +129,7 @@ agent = SimpleChatEngine.from_defaults(
 )
 
 # Start the chat
-response = agent.chat("Hi, My name is Mayank")
+response = agent.chat("Hi, My name is Alice")
 print(response)
 ```
 Now we will learn how to use Mem0 with FunctionCalling and ReAct agents.
@@ -167,7 +172,7 @@ agent = FunctionCallingAgent.from_tools(
 )
 
 # Start the chat
-response = agent.chat("Hi, My name is Mayank")
+response = agent.chat("Hi, My name is Alice")
 print(response)
 ```
 
@@ -184,7 +189,7 @@ agent = ReActAgent.from_tools(
 )
 
 # Start the chat
-response = agent.chat("Hi, My name is Mayank")
+response = agent.chat("Hi, My name is Alice")
 print(response)
 ```
 
@@ -199,14 +204,12 @@ print(response)
 
 By integrating LlamaIndex with Mem0, you can build a personalized agent that can maintain context across interactions with the agent and provide tailored recommendations and assistance.
 
-## Help
-
-- For more details on LlamaIndex, visit the [LlamaIndex documentation](https://llamahub.ai/l/memory/llama-index-memory-mem0).
-- [Mem0 Platform](https://app.mem0.ai/).
-- If you need further assistance, please feel free to reach out to us through following methods:
-
-<Snippet file="get-help.mdx" />
-
-
-
+<CardGroup cols={2}>
+  <Card title="LlamaIndex Multiagent Cookbook" icon="brain" href="/cookbooks/frameworks/llamaindex-multiagent">
+    Build multi-agent systems with LlamaIndex and Mem0
+  </Card>
+  <Card title="LlamaIndex ReAct Cookbook" icon="bolt" href="/cookbooks/frameworks/llamaindex-react">
+    Create ReAct agents with LlamaIndex
+  </Card>
+</CardGroup>
 

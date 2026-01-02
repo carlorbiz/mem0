@@ -1,6 +1,7 @@
 import logging
 import uuid
 from typing import Dict, List, Mapping, Optional
+from urllib.parse import urlparse
 
 from pydantic import BaseModel
 
@@ -12,7 +13,7 @@ except ImportError:
     )
 
 import weaviate.classes.config as wvcc
-from weaviate.classes.init import Auth
+from weaviate.classes.init import AdditionalConfig, Auth, Timeout
 from weaviate.classes.query import Filter, MetadataQuery
 from weaviate.util import get_valid_uuid
 
@@ -49,11 +50,33 @@ class Weaviate(VectorStoreBase):
         """
         if "localhost" in cluster_url:
             self.client = weaviate.connect_to_local(headers=additional_headers)
-        else:
-            self.client = weaviate.connect_to_wcs(
+        elif auth_client_secret:
+            self.client = weaviate.connect_to_weaviate_cloud(
                 cluster_url=cluster_url,
                 auth_credentials=Auth.api_key(auth_client_secret),
                 headers=additional_headers,
+            )
+        else:
+            parsed = urlparse(cluster_url)  # e.g., http://mem0_store:8080
+            http_host = parsed.hostname or "localhost"
+            http_port = parsed.port or (443 if parsed.scheme == "https" else 8080)
+            http_secure = parsed.scheme == "https"
+
+            # Weaviate gRPC defaults (inside Docker network)
+            grpc_host = http_host
+            grpc_port = 50051
+            grpc_secure = False
+
+            self.client = weaviate.connect_to_custom(
+                http_host,
+                http_port,
+                http_secure,
+                grpc_host,
+                grpc_port,
+                grpc_secure,
+                headers=additional_headers,
+                skip_init_checks=True,
+                additional_config=AdditionalConfig(timeout=Timeout(init=2.0)),
             )
 
         self.collection_name = collection_name
@@ -185,12 +208,16 @@ class Weaviate(VectorStoreBase):
                     del payload[id_field]
 
             payload["id"] = str(obj.uuid).split("'")[0]  # Include the id in the payload
+            if obj.metadata.distance is not None:
+                score = 1 - obj.metadata.distance  # Convert distance to similarity score
+            elif obj.metadata.score is not None:
+                score = obj.metadata.score
+            else:
+                score = 1.0  # Default score if none provided
             results.append(
                 OutputData(
                     id=str(obj.uuid),
-                    score=1
-                    if obj.metadata.distance is None
-                    else 1 - obj.metadata.distance,  # Convert distance to score
+                    score=score,
                     payload=payload,
                 )
             )

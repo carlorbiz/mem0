@@ -31,7 +31,6 @@ from fastapi import FastAPI, Request
 from fastapi.routing import APIRouter
 from mcp.server.fastmcp import FastMCP
 from mcp.server.sse import SseServerTransport
-from qdrant_client import models as qdrant_models
 
 # Load environment variables
 load_dotenv()
@@ -134,7 +133,7 @@ async def add_memories(text: str) -> str:
 
                 db.commit()
 
-            return response
+            return json.dumps(response)
         finally:
             db.close()
     except Exception as e:
@@ -165,74 +164,54 @@ async def search_memory(query: str) -> str:
             # Get accessible memory IDs based on ACL
             user_memories = db.query(Memory).filter(Memory.user_id == user.id).all()
             accessible_memory_ids = [memory.id for memory in user_memories if check_memory_access_permissions(db, memory, app.id)]
-            
-            conditions = [qdrant_models.FieldCondition(key="user_id", match=qdrant_models.MatchValue(value=uid))]
-            
-            if accessible_memory_ids:
-                # Convert UUIDs to strings for Qdrant
-                accessible_memory_ids_str = [str(memory_id) for memory_id in accessible_memory_ids]
-                conditions.append(qdrant_models.HasIdCondition(has_id=accessible_memory_ids_str))
 
-            filters = qdrant_models.Filter(must=conditions)
+            filters = {
+                "user_id": uid
+            }
+
             embeddings = memory_client.embedding_model.embed(query, "search")
-            
-            hits = memory_client.vector_store.client.query_points(
-                collection_name=memory_client.vector_store.collection_name,
-                query=embeddings,
-                query_filter=filters,
-                limit=10,
+
+            hits = memory_client.vector_store.search(
+                query=query, 
+                vectors=embeddings, 
+                limit=10, 
+                filters=filters,
             )
 
-            # Process search results
-            memories = hits.points
-            memories = [
-                {
-                    "id": memory.id,
-                    "memory": memory.payload["data"],
-                    "hash": memory.payload.get("hash"),
-                    "created_at": memory.payload.get("created_at"),
-                    "updated_at": memory.payload.get("updated_at"),
-                    "score": memory.score,
-                }
-                for memory in memories
-            ]
+            allowed = set(str(mid) for mid in accessible_memory_ids) if accessible_memory_ids else None
 
-            # Log memory access for each memory found
-            if isinstance(memories, dict) and 'results' in memories:
-                print(f"Memories: {memories}")
-                for memory_data in memories['results']:
-                    if 'id' in memory_data:
-                        memory_id = uuid.UUID(memory_data['id'])
-                        # Create access log entry
-                        access_log = MemoryAccessLog(
-                            memory_id=memory_id,
-                            app_id=app.id,
-                            access_type="search",
-                            metadata_={
-                                "query": query,
-                                "score": memory_data.get('score'),
-                                "hash": memory_data.get('hash')
-                            }
-                        )
-                        db.add(access_log)
-                db.commit()
-            else:
-                for memory in memories:
-                    memory_id = uuid.UUID(memory['id'])
-                    # Create access log entry
+            results = []
+            for h in hits:
+                # All vector db search functions return OutputData class
+                id, score, payload = h.id, h.score, h.payload
+                if allowed and h.id is None or h.id not in allowed: 
+                    continue
+                
+                results.append({
+                    "id": id, 
+                    "memory": payload.get("data"), 
+                    "hash": payload.get("hash"),
+                    "created_at": payload.get("created_at"), 
+                    "updated_at": payload.get("updated_at"), 
+                    "score": score,
+                })
+
+            for r in results: 
+                if r.get("id"): 
                     access_log = MemoryAccessLog(
-                        memory_id=memory_id,
+                        memory_id=uuid.UUID(r["id"]),
                         app_id=app.id,
                         access_type="search",
                         metadata_={
                             "query": query,
-                            "score": memory.get('score'),
-                            "hash": memory.get('hash')
-                        }
+                            "score": r.get("score"),
+                            "hash": r.get("hash"),
+                        },
                     )
                     db.add(access_log)
-                db.commit()
-            return json.dumps(memories, indent=2)
+            db.commit()
+
+            return json.dumps({"results": results}, indent=2)
         finally:
             db.close()
     except Exception as e:
@@ -309,6 +288,80 @@ async def list_memories() -> str:
         return f"Error getting memories: {e}"
 
 
+@mcp.tool(description="Delete specific memories by their IDs")
+async def delete_memories(memory_ids: list[str]) -> str:
+    uid = user_id_var.get(None)
+    client_name = client_name_var.get(None)
+    if not uid:
+        return "Error: user_id not provided"
+    if not client_name:
+        return "Error: client_name not provided"
+
+    # Get memory client safely
+    memory_client = get_memory_client_safe()
+    if not memory_client:
+        return "Error: Memory system is currently unavailable. Please try again later."
+
+    try:
+        db = SessionLocal()
+        try:
+            # Get or create user and app
+            user, app = get_user_and_app(db, user_id=uid, app_id=client_name)
+
+            # Convert string IDs to UUIDs and filter accessible ones
+            requested_ids = [uuid.UUID(mid) for mid in memory_ids]
+            user_memories = db.query(Memory).filter(Memory.user_id == user.id).all()
+            accessible_memory_ids = [memory.id for memory in user_memories if check_memory_access_permissions(db, memory, app.id)]
+
+            # Only delete memories that are both requested and accessible
+            ids_to_delete = [mid for mid in requested_ids if mid in accessible_memory_ids]
+
+            if not ids_to_delete:
+                return "Error: No accessible memories found with provided IDs"
+
+            # Delete from vector store
+            for memory_id in ids_to_delete:
+                try:
+                    memory_client.delete(str(memory_id))
+                except Exception as delete_error:
+                    logging.warning(f"Failed to delete memory {memory_id} from vector store: {delete_error}")
+
+            # Update each memory's state and create history entries
+            now = datetime.datetime.now(datetime.UTC)
+            for memory_id in ids_to_delete:
+                memory = db.query(Memory).filter(Memory.id == memory_id).first()
+                if memory:
+                    # Update memory state
+                    memory.state = MemoryState.deleted
+                    memory.deleted_at = now
+
+                    # Create history entry
+                    history = MemoryStatusHistory(
+                        memory_id=memory_id,
+                        changed_by=user.id,
+                        old_state=MemoryState.active,
+                        new_state=MemoryState.deleted
+                    )
+                    db.add(history)
+
+                    # Create access log entry
+                    access_log = MemoryAccessLog(
+                        memory_id=memory_id,
+                        app_id=app.id,
+                        access_type="delete",
+                        metadata_={"operation": "delete_by_id"}
+                    )
+                    db.add(access_log)
+
+            db.commit()
+            return f"Successfully deleted {len(ids_to_delete)} memories"
+        finally:
+            db.close()
+    except Exception as e:
+        logging.exception(f"Error deleting memories: {e}")
+        return f"Error deleting memories: {e}"
+
+
 @mcp.tool(description="Delete all memories in the user's memory")
 async def delete_all_memories() -> str:
     uid = user_id_var.get(None)
@@ -335,7 +388,7 @@ async def delete_all_memories() -> str:
             # delete the accessible memories only
             for memory_id in accessible_memory_ids:
                 try:
-                    memory_client.delete(memory_id)
+                    memory_client.delete(str(memory_id))
                 except Exception as delete_error:
                     logging.warning(f"Failed to delete memory {memory_id} from vector store: {delete_error}")
 

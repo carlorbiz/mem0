@@ -1,10 +1,31 @@
 import hashlib
 import re
 
-from mem0.configs.prompts import FACT_RETRIEVAL_PROMPT
+from mem0.configs.prompts import (
+    FACT_RETRIEVAL_PROMPT,
+    USER_MEMORY_EXTRACTION_PROMPT,
+    AGENT_MEMORY_EXTRACTION_PROMPT,
+)
 
 
-def get_fact_retrieval_messages(message):
+def get_fact_retrieval_messages(message, is_agent_memory=False):
+    """Get fact retrieval messages based on the memory type.
+    
+    Args:
+        message: The message content to extract facts from
+        is_agent_memory: If True, use agent memory extraction prompt, else use user memory extraction prompt
+        
+    Returns:
+        tuple: (system_prompt, user_prompt)
+    """
+    if is_agent_memory:
+        return AGENT_MEMORY_EXTRACTION_PROMPT, f"Input:\n{message}"
+    else:
+        return USER_MEMORY_EXTRACTION_PROMPT, f"Input:\n{message}"
+
+
+def get_fact_retrieval_messages_legacy(message):
+    """Legacy function for backward compatibility."""
     return FACT_RETRIEVAL_PROMPT, f"Input:\n{message}"
 
 
@@ -43,7 +64,9 @@ def remove_code_blocks(content: str) -> str:
     """
     pattern = r"^```[a-zA-Z0-9]*\n([\s\S]*?)\n```$"
     match = re.match(pattern, content.strip())
-    return match.group(1).strip() if match else content.strip()
+    match_res=match.group(1).strip() if match else content.strip()
+    return re.sub(r"<think>.*?</think>", "", match_res, flags=re.DOTALL).strip()
+
 
 
 def extract_json(text):
@@ -131,3 +154,55 @@ def process_telemetry_filters(filters):
         encoded_ids["run_id"] = hashlib.md5(filters["run_id"].encode()).hexdigest()
 
     return list(filters.keys()), encoded_ids
+
+
+def sanitize_relationship_for_cypher(relationship) -> str:
+    """Sanitize relationship text for Cypher queries by replacing problematic characters."""
+    char_map = {
+        "...": "_ellipsis_",
+        "…": "_ellipsis_",
+        "。": "_period_",
+        "，": "_comma_",
+        "；": "_semicolon_",
+        "：": "_colon_",
+        "！": "_exclamation_",
+        "？": "_question_",
+        "（": "_lparen_",
+        "）": "_rparen_",
+        "【": "_lbracket_",
+        "】": "_rbracket_",
+        "《": "_langle_",
+        "》": "_rangle_",
+        "'": "_apostrophe_",
+        '"': "_quote_",
+        "\\": "_backslash_",
+        "/": "_slash_",
+        "|": "_pipe_",
+        "&": "_ampersand_",
+        "=": "_equals_",
+        "+": "_plus_",
+        "*": "_asterisk_",
+        "^": "_caret_",
+        "%": "_percent_",
+        "$": "_dollar_",
+        "#": "_hash_",
+        "@": "_at_",
+        "!": "_bang_",
+        "?": "_question_",
+        "(": "_lparen_",
+        ")": "_rparen_",
+        "[": "_lbracket_",
+        "]": "_rbracket_",
+        "{": "_lbrace_",
+        "}": "_rbrace_",
+        "<": "_langle_",
+        ">": "_rangle_",
+    }
+
+    # Apply replacements and clean up
+    sanitized = relationship
+    for old, new in char_map.items():
+        sanitized = sanitized.replace(old, new)
+
+    return re.sub(r"_+", "_", sanitized).strip("_")
+

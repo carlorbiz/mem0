@@ -3,8 +3,6 @@ title: Development
 icon: "code"
 ---
 
-<Snippet file="blank-notif.mdx" />
-
 # Development Contributions
 
 We strive to make contributions **easy, collaborative, and enjoyable**. Follow the steps below to ensure a smooth contribution process.
@@ -21,25 +19,25 @@ To contribute, follow these steps:
 4. **Code Quality Checks**:
    - Run **linting** to catch style issues
    - Ensure **all tests pass**
-5. **Submit a Pull Request** 🚀
+5. **Submit a Pull Request**
 
 For detailed guidance on pull requests, refer to [GitHub's documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request).
 
 ---
 
-## 📦 Dependency Management
+## Dependency Management
 
 We use `hatch` as our package manager. Install it by following the [official instructions](https://hatch.pypa.io/latest/install/).
 
-⚠️ **Do NOT use `pip` or `conda` for dependency management.** Instead, follow these steps in order:
+**Do NOT use `pip` or `conda` for dependency management.** Instead, follow these steps in order:
 
 ```bash
 # 1. Install base dependencies
 make install
 
-# 2. Activate virtual environment (this will install deps.)
-hatch shell (for default env)
-hatch -e dev_py_3_11 shell (for dev_py_3_11) (differences are mentioned in pyproject.toml)
+# 2. Activate virtual environment (this will install dependencies)
+hatch shell  # For default environment
+hatch -e dev_py_3_11 shell  # For dev_py_3_11 (differences are mentioned in pyproject.toml)
 
 # 3. Install all optional dependencies
 make install_all
@@ -47,9 +45,9 @@ make install_all
 
 ---
 
-## 🛠️ Development Standards
+## Development Standards
 
-### ✅ Pre-commit Hooks
+### Pre-commit Hooks
 
 Ensure `pre-commit` is installed before contributing:
 
@@ -57,7 +55,7 @@ Ensure `pre-commit` is installed before contributing:
 pre-commit install
 ```
 
-### 🔍 Linting with `ruff`
+### Linting with `ruff`
 
 Run the linter and fix any reported issues before submitting your PR:
 
@@ -65,7 +63,7 @@ Run the linter and fix any reported issues before submitting your PR:
 make lint
 ```
 
-### 🎨 Code Formatting
+### Code Formatting
 
 To maintain a consistent code style, format your code:
 
@@ -73,7 +71,7 @@ To maintain a consistent code style, format your code:
 make format
 ```
 
-### 🧪 Testing with `pytest`
+### Testing with `pytest`
 
 Run tests to verify functionality before submitting your PR:
 
@@ -81,14 +79,14 @@ Run tests to verify functionality before submitting your PR:
 make test
 ```
 
-💡 **Note:** Some dependencies have been removed from the main dependencies to reduce package size. Run `make install_all` to install necessary dependencies before running tests.
+**Note:** Some dependencies have been removed from the main dependencies to reduce package size. Run `make install_all` to install necessary dependencies before running tests.
 
 ---
 
-## 🚀 Release Process
+## Release Process
 
 Currently, releases are handled manually. We aim for frequent releases, typically when new features or bug fixes are introduced.
 
 ---
 
-Thank you for contributing to Mem0! 🎉
+Thank you for contributing to Mem0!

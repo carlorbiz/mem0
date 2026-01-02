@@ -2,8 +2,6 @@
 title: DeepSeek
 ---
 
-<Snippet file="blank-notif.mdx" />
-
 To use DeepSeek LLM models, you have to set the `DEEPSEEK_API_KEY` environment variable. You can also optionally set `DEEPSEEK_API_BASE` if you need to use a different API endpoint (defaults to "https://api.deepseek.com").
 
 ## Usage
@@ -30,7 +28,7 @@ config = {
 m = Memory.from_config(config)
 messages = [
     {"role": "user", "content": "I'm planning to watch a movie tonight. Any recommendations?"},
-    {"role": "assistant", "content": "How about a thriller movies? They can be quite engaging."},
+    {"role": "assistant", "content": "How about thriller movies? They can be quite engaging."},
     {"role": "user", "content": "I’m not a big fan of thriller movies but I love sci-fi movies."},
     {"role": "assistant", "content": "Got it! I'll avoid thriller recommendations and suggest sci-fi movies in the future."}
 ]

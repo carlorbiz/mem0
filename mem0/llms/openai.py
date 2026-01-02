@@ -35,7 +35,7 @@ class OpenAILLM(LLMBase):
         super().__init__(config)
 
         if not self.config.model:
-            self.config.model = "gpt-4o-mini"
+            self.config.model = "gpt-4.1-nano-2025-04-14"
 
         if os.environ.get("OPENROUTER_API_KEY"):  # Use OpenRouter
             self.client = OpenAI(
@@ -123,7 +123,13 @@ class OpenAILLM(LLMBase):
                 openrouter_params["extra_headers"] = extra_headers
 
             params.update(**openrouter_params)
-
+        
+        else:
+            openai_specific_generation_params = ["store"]
+            for param in openai_specific_generation_params:
+                if hasattr(self.config, param):
+                    params[param] = getattr(self.config, param)
+            
         if response_format:
             params["response_format"] = response_format
         if tools:  # TODO: Remove tools if no issues found with new memory addition logic

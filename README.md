@@ -1,174 +1,171 @@
-# Mem0 AI Automation Ecosystem
+<p align="center">
+  <a href="https://github.com/mem0ai/mem0">
+    <img src="docs/images/banner-sm.png" width="800px" alt="Mem0 - The Memory Layer for Personalized AI">
+  </a>
+</p>
+<p align="center" style="display: flex; justify-content: center; gap: 20px; align-items: center;">
+  <a href="https://trendshift.io/repositories/11194" target="blank">
+    <img src="https://trendshift.io/api/badge/repositories/11194" alt="mem0ai%2Fmem0 | Trendshift" width="250" height="55"/>
+  </a>
+</p>
 
-**Last Updated:** 2025-11-08
-**Purpose:** Carla's integrated AI automation platform with Mem0 memory layer, Knowledge Lake API, and multi-agent coordination
+<p align="center">
+  <a href="https://mem0.ai">Learn more</a>
+  ·
+  <a href="https://mem0.dev/DiG">Join Discord</a>
+  ·
+  <a href="https://mem0.dev/demo">Demo</a>
+  ·
+  <a href="https://mem0.dev/openmemory">OpenMemory</a>
+</p>
 
----
+<p align="center">
+  <a href="https://mem0.dev/DiG">
+    <img src="https://img.shields.io/badge/Discord-%235865F2.svg?&logo=discord&logoColor=white" alt="Mem0 Discord">
+  </a>
+  <a href="https://pepy.tech/project/mem0ai">
+    <img src="https://img.shields.io/pypi/dm/mem0ai" alt="Mem0 PyPI - Downloads">
+  </a>
+  <a href="https://github.com/mem0ai/mem0">
+    <img src="https://img.shields.io/github/commit-activity/m/mem0ai/mem0?style=flat-square" alt="GitHub commit activity">
+  </a>
+  <a href="https://pypi.org/project/mem0ai" target="blank">
+    <img src="https://img.shields.io/pypi/v/mem0ai?color=%2334D058&label=pypi%20package" alt="Package version">
+  </a>
+  <a href="https://www.npmjs.com/package/mem0ai" target="blank">
+    <img src="https://img.shields.io/npm/v/mem0ai" alt="Npm package">
+  </a>
+  <a href="https://www.ycombinator.com/companies/mem0">
+    <img src="https://img.shields.io/badge/Y%20Combinator-S24-orange?style=flat-square" alt="Y Combinator S24">
+  </a>
+</p>
 
-## 🏗️ Repository Structure (Reorganized 2025-11-08)
+<p align="center">
+  <a href="https://mem0.ai/research"><strong>📄 Building Production-Ready AI Agents with Scalable Long-Term Memory →</strong></a>
+</p>
+<p align="center">
+  <strong>⚡ +26% Accuracy vs. OpenAI Memory • 🚀 91% Faster • 💰 90% Fewer Tokens</strong>
+</p>
 
-### 📁 Core Infrastructure (Root Directory)
+> **🎉 mem0ai v1.0.0 is now available!** This major release includes API modernization, improved vector store support, and enhanced GCP integration. [See migration guide →](MIGRATION_GUIDE_v1.0.md)
 
-**Knowledge Lake API** (deployed to Railway):
-- `api_server.py` - Main Knowledge Lake Flask API
-- `start_knowledge_lake.py` - Production server (Waitress, port 5002)
-- `knowledge_lake_dashboard.py` - Dashboard interface
-- `enhanced_knowledge_lake_api.py` - Enhanced API features
-- `simple_api_server.py` - Simplified API server
-- `course_outputs/` - Course generation output directory
+##  🔥 Research Highlights
+- **+26% Accuracy** over OpenAI Memory on the LOCOMO benchmark
+- **91% Faster Responses** than full-context, ensuring low-latency at scale
+- **90% Lower Token Usage** than full-context, cutting costs without compromise
+- [Read the full paper](https://mem0.ai/research)
 
-**Mem0 Library** (deployed to Railway):
-- `mem0/` - Core mem0 AI memory library
-- `embedchain/` - Legacy embedchain RAG framework
-- `tests/`, `docs/`, `examples/`, `cookbooks/` - Library components
+# Introduction
 
-**Utility Scripts:**
-- `check_github_repo.py`, `gemini_receiver.py`, `test_env.py`
+[Mem0](https://mem0.ai) ("mem-zero") enhances AI assistants and agents with an intelligent memory layer, enabling personalized AI interactions. It remembers user preferences, adapts to individual needs, and continuously learns over time—ideal for customer support chatbots, AI assistants, and autonomous systems.
 
----
+### Key Features & Use Cases
 
-### 📂 Organized Project Folders
+**Core Capabilities:**
+- **Multi-Level Memory**: Seamlessly retains User, Session, and Agent state with adaptive personalization
+- **Developer-Friendly**: Intuitive API, cross-platform SDKs, and a fully managed service option
 
-#### `/AAE-master` - AI Automation Ecosystem Documentation
-Complete AAE architecture, agent coordination, and integration documentation.
-- `/agent-constitution` - Agent behavior guidelines (V1.0 current)
-- `/agent-perspectives` - Agent-specific architectural reviews
-- `/architecture` - Core architecture and state documents
-- `/session-notes` - Date-organized planning sessions
-- `/implementation` - Implementation guides and solutions
-- `/integration` - VibeSDK and external integrations
+**Applications:**
+- **AI Assistants**: Consistent, context-rich conversations
+- **Customer Support**: Recall past tickets and user history for tailored help
+- **Healthcare**: Track patient preferences and history for personalized care
+- **Productivity & Gaming**: Adaptive workflows and environments based on user behavior
 
-[See AAE-master/README.md](AAE-master/README.md)
+## 🚀 Quickstart Guide <a name="quickstart"></a>
 
-#### `/github-projects` - Active Development Projects
-Self-contained projects with their own deployments.
-- `/executive-ai-advisor` - Executive AI advisor application
-- `/carlorbiz-strategic-tool` - Strategic planning tool
+Choose between our hosted platform or self-hosted package:
 
-**Note:** `cc-slack-integration/` remains in root for Manus review.
+### Hosted Platform
 
-[See github-projects/README.md](github-projects/README.md)
+Get up and running in minutes with automatic updates, analytics, and enterprise security.
 
-#### `/consulting` - Client Projects
-- `/acrrm/resources` - ACRRM consulting project resources
+1. Sign up on [Mem0 Platform](https://app.mem0.ai)
+2. Embed the memory layer via SDK or API keys
 
-[See consulting/acrrm/README.md](consulting/acrrm/README.md)
+### Self-Hosted (Open Source)
 
-#### `/n8n-workflows` - Automation Workflows
-- `/active` - Current n8n workflow definitions
-- `/archive` - Archived workflows
+Install the sdk via pip:
 
-[See n8n-workflows/README.md](n8n-workflows/README.md)
-
-#### `/deployment` - Deployment Documentation & Scripts
-- `/current` - Active deployment guides
-- `/archive` - Historical deployment docs
-- `/scripts` - Batch files and deployment scripts
-
-[See deployment/README.md](deployment/README.md)
-
-#### `/documentation` - Project Documentation
-- `/quick-references` - Quick reference guides
-- `/session-notes` - Session-specific documentation
-
-[See documentation/README.md](documentation/README.md)
-
-#### `/conversations` - Conversation Logs
-- `/agent-conversations` - Agent-specific conversations
-- `/exports` - Conversation exports (current + archive)
-
-[See conversations/README.md](conversations/README.md)
-
-#### Existing Folders (Unchanged)
-- `/databases` - Notion database exports
-- `/archive` - General archive
-- `/google_apps_script`, `/mcp_servers`, `/knowledge-lake`, etc.
-
----
-
-## 🚀 Active Deployments
-
-### Mem0 Memory API
-- **URL:** https://web-production-e3e44.up.railway.app
-- **Platform:** Railway
-- **Source:** `/mem0` directory
-- **Purpose:** Cross-agent memory sharing
-
-### Knowledge Lake API
-- **URL:** https://knowledge-lake-api-production.up.railway.app
-- **Platform:** Railway
-- **Source:** Root directory
-- **Purpose:** AI Brain for course generation, context retrieval
-
-### VibeSDK AAE Dashboard
-- **URL:** https://vibe.mtmot.com
-- **Platform:** Cloudflare/Railway
-- **Features:** Memory API, Knowledge Lake integration, REST API for N8N/Zapier
-- **Docs:** See `/AAE-master/integration/`
-
----
-
-## 🤖 Active AI Agents
-
-- **Manus** - Slack orchestrator, DocsAutomator, full MCP access
-- **Fred** - ChatGPT integration
-- **Claude** - Claude Code, Claude GUI
-- **Others** - Gemini, Grok, Notebook LM, Pete, Penny, Colin, Callum
-
----
-
-## 💾 Backup & Sync
-
-- **Google Drive Backup:** Automated via rclone (daily)
-- **Backup Log:** `C:\Users\carlo\backup-log.txt`
-- **Notion Sync:** Manual exports + n8n automation (in development)
-- **GitHub:** Primary source of truth for AI-accessible data
-
----
-
-## 📋 Development Commands
-
-See [CLAUDE.md](CLAUDE.md) for complete development workflow and commands.
-
-**Quick Start:**
 ```bash
-# Install environment
-make install
-
-# Start Knowledge Lake API
-python start_knowledge_lake.py
-
-# Run tests
-make test
-
-# Format code
-make format
+pip install mem0ai
 ```
 
----
+Install sdk via npm:
+```bash
+npm install mem0ai
+```
 
-## 📝 For Manus
+### Basic Usage
 
-Manus: You have GitHub access to this repository.
+Mem0 requires an LLM to function, with `gpt-4.1-nano-2025-04-14 from OpenAI as the default. However, it supports a variety of LLMs; for details, refer to our [Supported LLMs documentation](https://docs.mem0.ai/components/llms/overview).
 
-**For Your Review:**
-- `/cc-slack-integration/` (root) - Slack integration system
-- All reorganized folders are now accessible via GitHub
+First step is to instantiate the memory:
 
-**API Access:**
-- Mem0 API: Via your MCP Docker integration
-- Knowledge Lake API: https://knowledge-lake-api-production.up.railway.app
+```python
+from openai import OpenAI
+from mem0 import Memory
 
----
+openai_client = OpenAI()
+memory = Memory()
 
-## 📚 Additional Documentation
+def chat_with_memories(message: str, user_id: str = "default_user") -> str:
+    # Retrieve relevant memories
+    relevant_memories = memory.search(query=message, user_id=user_id, limit=3)
+    memories_str = "\n".join(f"- {entry['memory']}" for entry in relevant_memories["results"])
 
-- [CLAUDE.md](CLAUDE.md) - Instructions for Claude Code
-- [README_PROJECT_STRUCTURE.md](README_PROJECT_STRUCTURE.md) - Detailed project structure
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
-- [FILE_MANIFEST_2025-11-08.md](FILE_MANIFEST_2025-11-08.md) - Reorganization manifest
+    # Generate Assistant response
+    system_prompt = f"You are a helpful AI. Answer the question based on query and memories.\nUser Memories:\n{memories_str}"
+    messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": message}]
+    response = openai_client.chat.completions.create(model="gpt-4.1-nano-2025-04-14", messages=messages)
+    assistant_response = response.choices[0].message.content
 
----
+    # Create new memories from the conversation
+    messages.append({"role": "assistant", "content": assistant_response})
+    memory.add(messages, user_id=user_id)
 
-**Reorganized:** 2025-11-08
-**Previous Structure:** See [FILE_MANIFEST_2025-11-08.md](FILE_MANIFEST_2025-11-08.md) for file move tracking
+    return assistant_response
+
+def main():
+    print("Chat with AI (type 'exit' to quit)")
+    while True:
+        user_input = input("You: ").strip()
+        if user_input.lower() == 'exit':
+            print("Goodbye!")
+            break
+        print(f"AI: {chat_with_memories(user_input)}")
+
+if __name__ == "__main__":
+    main()
+```
+
+For detailed integration steps, see the [Quickstart](https://docs.mem0.ai/quickstart) and [API Reference](https://docs.mem0.ai/api-reference).
+
+## 🔗 Integrations & Demos
+
+- **ChatGPT with Memory**: Personalized chat powered by Mem0 ([Live Demo](https://mem0.dev/demo))
+- **Browser Extension**: Store memories across ChatGPT, Perplexity, and Claude ([Chrome Extension](https://chromewebstore.google.com/detail/onihkkbipkfeijkadecaafbgagkhglop?utm_source=item-share-cb))
+- **Langgraph Support**: Build a customer bot with Langgraph + Mem0 ([Guide](https://docs.mem0.ai/integrations/langgraph))
+- **CrewAI Integration**: Tailor CrewAI outputs with Mem0 ([Example](https://docs.mem0.ai/integrations/crewai))
+
+## 📚 Documentation & Support
+
+- Full docs: https://docs.mem0.ai
+- Community: [Discord](https://mem0.dev/DiG) · [Twitter](https://x.com/mem0ai)
+- Contact: founders@mem0.ai
+
+## Citation
+
+We now have a paper you can cite:
+
+```bibtex
+@article{mem0,
+  title={Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory},
+  author={Chhikara, Prateek and Khant, Dev and Aryan, Saket and Singh, Taranjeet and Yadav, Deshraj},
+  journal={arXiv preprint arXiv:2504.19413},
+  year={2025}
+}
+```
+
+## ⚖️ License
+
+Apache 2.0 — see the [LICENSE](https://github.com/mem0ai/mem0/blob/main/LICENSE) file for details.
