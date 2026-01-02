@@ -286,7 +286,7 @@ def health_check():
     return jsonify({
         'status': 'healthy',
         'service': 'mem0_knowledge_lake',
-        'version': '2.1.1_thread_pool_fix',
+        'version': '2.2.0_performance_optimization',
         'database_enabled': USE_DATABASE,
         'environment': {
             'railway': railway_env,
@@ -300,6 +300,7 @@ def health_check():
                 '/api/conversations/ingest',
                 '/api/conversations',
                 '/api/conversations/search',
+                '/api/conversations/search/metadata',
                 '/api/conversations/unprocessed',
                 '/api/conversations/archive',
                 '/api/conversations/extract-learning'
@@ -307,7 +308,8 @@ def health_check():
             'entities': ['/api/entities', '/api/relationships'],
             'aurelia': ['/api/aurelia/query', '/api/aurelia/context'],
             'stats': ['/api/stats'],
-            'bot': ['/api/bot/query', '/api/bot/ingest-sample']
+            'bot': ['/api/bot/query', '/api/bot/ingest-sample'],
+            'cache': ['/api/cache/stats', '/api/cache/clear']
         }
     })
 
