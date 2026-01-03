@@ -1,0 +1,28 @@
+{
+  "name": "voice-to-drive",
+  "version": "1.0.0",
+  "description": "A hands-free Progressive Web App (PWA) for recording voice notes while driving, with automatic upload to Google Drive.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ricky0123/vad-web": "^0.0.29",
+    "gapi-script": "^1.2.0",
+    "idb": "^8.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.2.2",
+    "workbox-cli": "^7.3.0"
+  }
+}
