@@ -12,7 +12,7 @@
 | Category | Count | Status |
 |----------|-------|--------|
 | **Production Apps** | 4 | ✅ Live |
-| **Apps in Development** | 3 | 🚧 Active |
+| **Apps in Development** | 4 | 🚧 Active |
 | **MCP Servers** | 3 | ✅ Active |
 | **Infrastructure Services** | 2 | ✅ Live (Railway) |
 | **Course Generation Systems** | 1 | ✅ Active |
@@ -42,13 +42,14 @@
 | **Description** | AI Automation Ecosystem dashboard with cross-agent coordination |
 | **Platform** | Cloudflare Pages |
 | **Production URL** | https://vibe.mtmot.com |
-| **Tech Stack** | React, Vite, TypeScript, tRPC, SQLite, Mem0, Knowledge Lake |
+| **Tech Stack** | React, Vite, TypeScript, tRPC, Drizzle ORM, D1/SQLite, Mem0, Knowledge Lake |
 | **Features** | Platform management, LLM metrics, workflow automation, knowledge base, N8N REST API |
 | **Status** | ✅ Build Complete, ⚠️ DNS Configuration Needed |
-| **Location** | Root directory tracking (deployed from separate repo) |
+| **Location** | `/github-projects/aae-dashboard/` |
 | **Deployment Docs** | `/cloudflare-deployments/AAE Dashboard Deployment Summary.md` |
-| **Integration** | Mem0 API, Knowledge Lake API, N8N workflows |
-| **Dashboard Pages** | `/aae-dashboard`, `/aae-platforms`, `/aae-llm-metrics`, `/aae-workflows`, `/aae-knowledge`, `/aae-chat` |
+| **Integration** | Mem0 API, Knowledge Lake API, N8N workflows, Notion proxy |
+| **Dashboard Pages** | Dashboard, Workflows, LLM Metrics, Knowledge Lake, Platform Integrations, AI Chat, ACRRM Pipeline |
+| **Database** | Cloudflare D1 (SQLite) with Drizzle migrations |
 
 ### 3. **RWAV Strategic Tool**
 | Detail | Value |
@@ -114,6 +115,18 @@
 | **Location** | `/CareTrack/` |
 | **Documentation** | `CARETRACK_IMPLEMENTATION_PLAN.md`, `CARETRACK_SUPABASE_IMPLEMENTATION.md` |
 | **Architecture** | Supabase backend, n8n workflow integration with Gemini AI |
+
+### 8. **Executive Sanctuary**
+| Detail | Value |
+|--------|-------|
+| **Description** | Health tracking platform with AI-powered career amplification |
+| **Tech Stack** | FastAPI (Python), React, MongoDB, shadcn/ui |
+| **Status** | 🚧 Development |
+| **Location** | `/github-projects/exec-sanctuary/` |
+| **Features** | Medication tracking, appointments, mood/reflection entries, daily prompts |
+| **Planned Integration** | Knowledge Lake API for AI insights, Mem0 for expertise documentation |
+| **Documentation** | See agent-conversations/claude/exec-sanctuary_AAE_INTEGRATION_ANALYSIS.md |
+| **Auth** | Emergent AI |
 
 ---
 
