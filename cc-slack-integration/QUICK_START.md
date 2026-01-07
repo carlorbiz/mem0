@@ -24,7 +24,7 @@ Get up and running in 15 minutes! Command Claude Code from anywhere via Slack.
    - Source, Slack Thread Link, Slack Channel ID, Slack Message TS (all Text/URL)
    - Created Time, Processed Time (auto)
    - Response, Project Key (Text)
-
+ 
 4. **Copy the database ID** from URL:
    ```
    https://notion.so/[workspace]/[DATABASE_ID]?v=...

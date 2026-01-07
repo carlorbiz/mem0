@@ -12,6 +12,7 @@ import { notionTools } from "./tools/notionTools.js";
 import { driveTools } from "./tools/driveTools.js";
 import { knowledgeLakeTools } from "./tools/knowledgeLakeTools.js";
 import { aaeTools } from "./tools/aaeTools.js";
+import { standardsTools } from "./tools/standardsTools.js";
 
 // Combine all tools
 const allTools = [
@@ -19,6 +20,7 @@ const allTools = [
   ...driveTools,
   ...knowledgeLakeTools,
   ...aaeTools,
+  ...standardsTools,
 ];
 
 // Create tool lookup map

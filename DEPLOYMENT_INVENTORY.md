@@ -1,6 +1,6 @@
 # Deployment & Project Inventory
 
-**Last Updated:** 2025-12-24
+**Last Updated:** 2026-01-07
 **Repository:** mem0 (carlorbiz/mem0)
 **Purpose:** Single source of truth for all apps, courses, and deployments
 **Enforcement:** 4-layer automated system (see INVENTORY_ENFORCEMENT.md)
@@ -122,13 +122,14 @@
 ### 8. **MTMOT Unified MCP Server**
 | Detail | Value |
 |--------|-------|
-| **Description** | Unified MCP server providing Notion, Google Drive, and Knowledge Lake access |
+| **Description** | Unified MCP server providing Notion, Google Drive, Knowledge Lake, and Standards access |
 | **Status** | ✅ Active |
 | **Location** | `/mtmot-unified-mcp/` |
-| **Tools** | 33 total (10 Notion, 12 Google Drive, 10 Knowledge Lake, 1 AAE Dashboard) |
+| **Tools** | 34 total (10 Notion, 12 Google Drive, 10 Knowledge Lake, 1 AAE Dashboard, 1 Standards) |
 | **Transport** | STDIO (local) and SSE (remote HTTP) |
 | **Clients** | ChatGPT Dev Mode, Claude Code, any MCP client |
-| **Key Features** | Full CRUD operations, semantic search, conversation ingestion, entity management |
+| **Key Features** | Full CRUD operations, semantic search, conversation ingestion, entity management, governance standards retrieval |
+| **New** | Standards framework (Always-On Skill Constitution v1.0.0) |
 
 ### 9. **Manus MCP Server**
 | Detail | Value |
@@ -439,12 +440,13 @@ mem0/
 
 ---
 
-## 🎯 Current Priorities (December 2025)
+## 🎯 Current Priorities (January 2026)
 
-1. **Knowledge Lake MCP Tools** - Add extract-learning and archive tools to Manus MCP
-2. **AAE Dashboard DNS** - Configure vibe.mtmot.com DNS in Cloudflare
-3. **Course Generation** - MTMOT Mastermind Hub launch prep (mid-January 2026)
-4. **CareTrack Development** - Continue Supabase implementation
+1. **AAE Dashboard Relocation** - Moved to `/github-projects/aae-dashboard/` (pending integration)
+2. **MTMOT Mastermind Hub Launch** - Mid-January 2026 launch preparation
+3. **AI Visibility Strategy** - MTMOT B2B positioning and Manus-Meta partnership narrative
+4. **Executive Sanctuary Integration** - AAE/Nera AI integration analysis (in review)
+5. **Knowledge Lake MCP Tools** - Extract-learning and archive tools (pending)
 
 ---
 
