@@ -53,10 +53,17 @@ async function startServer() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Auth routes (Google OAuth)
+  // Auth routes (Google OAuth) - Production authentication
   app.use(authRoutes);
-  // OAuth callback under /api/oauth/callback
-  registerOAuthRoutes(app);
+
+  // Manus OAuth SDK - Only for development/conceptual environments
+  // OAUTH_SERVER_URL points to Manus Platform (not a production deployment target)
+  if (process.env.OAUTH_SERVER_URL) {
+    console.log("[Server] Manus OAuth SDK enabled (development mode)");
+    registerOAuthRoutes(app);
+  } else {
+    console.log("[Server] Manus OAuth SDK disabled - using Google OAuth for production");
+  }
   // tRPC API
   app.use(
     "/api/trpc",
