@@ -699,7 +699,7 @@ export const knowledgeRouter = router({
         let knowledgeLakeIngested = false;
 
         try {
-          await axios.post(`${knowledgeLakeUrl}/api/conversations`, {
+          await axios.post(`${knowledgeLakeUrl}/api/conversations/ingest`, {
             userId,
             topic: parsed.metadata?.title || `Conversation from ${input.filePath}`,
             content: parsed.fullText,
@@ -771,8 +771,8 @@ export const knowledgeRouter = router({
       const knowledgeLakeUrl = process.env.KNOWLEDGE_LAKE_URL || 'https://knowledge-lake-api-production.up.railway.app';
 
       try {
-        // Use POST /api/query endpoint (Knowledge Lake API 2.1.0)
-        const response = await axios.post(`${knowledgeLakeUrl}/api/query`, {
+        // Use POST /api/conversations/search endpoint (Knowledge Lake API 2.2.0)
+        const response = await axios.post(`${knowledgeLakeUrl}/api/conversations/search`, {
           userId: userId,
           query: input.query || '',
           limit: input.limit,
