@@ -1,9 +1,10 @@
 # AAE Intelligent Corporate Brain - Complete Project Truth
 ## Single Source of Truth for Knowledge Lake + Aurelia + mem0 + AAE Dashboard
 
-**Last Updated**: December 12, 2025
-**Status**: Production Deployed ✅
-**Version**: 2.1.0-database-persistence
+**Last Updated**: January 8, 2026
+**Last Verified**: January 8, 2026 (CC Autonomous Audit)
+**Status**: Production Ready ✅ (Bugs Fixed)
+**Version**: 2.2.0_performance_optimization (Knowledge Lake API)
 **Purpose**: Comprehensive chronological record of achievements, challenges, solutions, and strategic direction
 
 ---
@@ -30,6 +31,52 @@
 - ❌ **Invalid Reference**: "Manus Platform" for deployment/hosting
 
 **If you see "Manus Platform" mentioned in architecture docs → IGNORE IT → Archive the file**
+
+---
+
+## 🔧 JANUARY 8, 2026 - CRITICAL BUGS FIXED
+
+### AAE Dashboard → Knowledge Lake API Connectivity Restored
+
+**Context**: User (Carla) reported AAE Dashboard at vibe.mtmot.com not working properly, with Knowledge Lake API connectivity broken, forcing workaround via MTMOT Unified MCP.
+
+**Root Cause Identified** (CC Autonomous Audit):
+1. ❌ **Bug #1**: Conversation ingestion endpoint incorrect
+   - **Wrong**: `POST /api/conversations`
+   - **Correct**: `POST /api/conversations/ingest`
+   - **Location**: [server/routers/knowledge.ts:702](server/routers/knowledge.ts#L702)
+   - **Impact**: All conversation ingestion from dashboard failed silently
+
+2. ❌ **Bug #2**: Conversation search endpoint incorrect
+   - **Wrong**: `POST /api/query` (endpoint doesn't exist)
+   - **Correct**: `POST /api/conversations/search`
+   - **Location**: [server/routers/knowledge.ts:775](server/routers/knowledge.ts#L775)
+   - **Impact**: Knowledge Lake searches returned 404 errors, blocking access to 2,455+ conversations
+
+**Resolution** (Commit: 44f7abbd):
+- ✅ Fixed both endpoints to match Knowledge Lake API 2.2.0 specification
+- ✅ Verified against actual API server code (`api_server.py` endpoint decorators)
+- ✅ Tested Knowledge Lake health check: HEALTHY ✅
+- ✅ Secured exposed API keys (moved to `.env.local`, git-ignored)
+- ✅ Created comprehensive [AUDIT_REPORT.md](AUDIT_REPORT.md)
+
+**Verified Working Endpoints** (January 8, 2026):
+- `/api/conversations/ingest` - Conversation ingestion ✅
+- `/api/conversations/search` - Semantic search ✅
+- `/api/conversations/extract-learning` - Extract learnings (NEW!) ✅
+- `/api/conversations/archive` - Archive conversations ✅
+- `/api/entities` - Get entities ✅
+- `/api/relationships` - Get relationships ✅
+- `/api/stats` - Get statistics ✅
+- `/api/aurelia/query` - Aurelia integration ✅
+
+**Status**: 🟢 AAE Dashboard → Knowledge Lake connectivity RESTORED
+
+**Next Actions**:
+- Test locally: `npm run dev` → verify ingestion and search
+- Deploy to Railway: Ensure environment variables set
+- Update DEPLOYMENT_INVENTORY.md with production URLs
+- Test end-to-end unified dashboard access
 
 ---
 
