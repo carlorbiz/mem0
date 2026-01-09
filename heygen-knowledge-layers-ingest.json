@@ -1,0 +1,27 @@
+{
+  "userId": 1,
+  "agent": "Jan",
+  "date": "2026-01-03",
+  "topic": "HeyGen LiveAvatar Discovery & Topic-Specific Knowledge Layers Architecture",
+  "content": "# HeyGen Discovery & Knowledge Layer Architecture\n\n## HeyGen LiveAvatar Capabilities\n\n**Key Discovery:** HeyGen can replace entire Speechify pipeline and become Nera's visual interface.\n\n**HeyGen Features:**\n- Voice Cloning via ElevenLabs partnership\n- LiveAvatar/Streaming Avatar for real-time conversations\n- API Integration with custom LLMs\n- Can connect directly to Knowledge Lake\n\n**Architecture:** USER SPEAKS → LiveAvatar → Knowledge Lake → Responds in cloned voice with avatar\n\n**Quality:** Voice ⭐⭐⭐⭐½, Lip Sync ⭐⭐⭐⭐, Real-Time ⭐⭐⭐⭐⭐\n\n**Impact:** Speechify becomes optional, HeyGen handles course creation + Nera interface\n\n---\n\n## Topic-Specific Knowledge Layers Architecture\n\n**Problem:** Knowledge Lake grew from 143 to 2800 conversations. Querying entire lake causes latency.\n\n**Solution:** Tiered architecture with topic-specific layers:\n\n```\nMain Knowledge Lake (comprehensive, 2800+ conversations)\n    ↓ feeds nightly\nTopic Layers (fast, focused):\n  - Executive Recovery → Executive Sanctuary\n  - Healthcare → CareTrack  \n  - Coaching → AI Exec Coach\n    ↓ queries\nIndividual Apps\n    ↓ new data\nBack to Main Knowledge Lake\n```\n\n**Implementation:**\n- Separate Qdrant collections per topic layer\n- Nightly sync: extract learnings → route to layers\n- Real-time capture: app interactions → main lake\n- Requires metadata: businessArea, appSource\n\n**Benefits:**\n- Speed: Smaller search space\n- Relevance: Pre-filtered by topic\n- Scalability: Apps don't compete for resources\n- Growth: More usage → more data → smarter layers\n\n**Immediate Action Required:**\n- Audit current 2800 conversations for metadata\n- Check businessArea field consistency\n- Ensure schema ready for layer routing\n- This is priority #1 before further development\n\n**CC Implementation Tasks:**\n1. Create separate Qdrant collections per topic layer\n2. Build /api/layers/{layer_name}/search endpoint\n3. Create sync job for learning extraction and distribution\n4. Implement routing logic for layer assignment\n5. Add app tagging metadata on ingests",
+  "metadata": {
+    "businessArea": "AAE Architecture",
+    "conversationType": "Strategic Planning",
+    "processingAgent": "Jan",
+    "keyTopics": ["HeyGen", "LiveAvatar", "Voice Cloning", "Topic Knowledge Layers", "Latency", "Nera Architecture", "Scale"],
+    "actionItems": [
+      "Test HeyGen voice cloning quality",
+      "Evaluate HeyGen LiveAvatar feature",
+      "Audit Knowledge Lake metadata (2800 conversations)",
+      "Design topic layer routing logic",
+      "Create Qdrant collections per topic layer",
+      "Build layer search endpoints"
+    ],
+    "criticalDecisions": [
+      "HeyGen replaces Speechify pipeline",
+      "LiveAvatar SDK connects to Knowledge Lake",
+      "Topic layers required due to 2800 conversation scale",
+      "Knowledge Lake audit is priority #1"
+    ]
+  }
+}

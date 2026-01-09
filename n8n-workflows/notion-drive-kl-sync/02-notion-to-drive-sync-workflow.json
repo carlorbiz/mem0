@@ -1,0 +1,270 @@
+{
+  "name": "02 - Notion to Google Drive Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */4 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Every 4 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "mode": "list",
+        "list": "databaseId",
+        "databaseId": {
+          "__rl": true,
+          "value": "24f9440556f78033a2e0e8f4eee6f341",
+          "mode": "id"
+        }
+      },
+      "name": "Get Database List from Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [450, 300],
+      "notes": "Configure multiple database IDs here"
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "name": "Process Each Database",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": "={{ $json.databaseId }}",
+        "returnAll": true,
+        "options": {}
+      },
+      "name": "Query Notion Database",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [850, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "your-notion-credential-id",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Transform Notion pages to Google Sheets format\nconst rows = [];\n\nfor (const item of $input.all()) {\n  const page = item.json;\n  const properties = page.properties || {};\n  \n  const row = {\n    notion_id: page.id,\n    notion_url: page.url,\n    created_time: page.created_time,\n    last_edited_time: page.last_edited_time\n  };\n  \n  // Extract property values\n  for (const [key, prop] of Object.entries(properties)) {\n    if (prop.type === 'title') {\n      row[key] = prop.title?.[0]?.plain_text || '';\n    } else if (prop.type === 'rich_text') {\n      row[key] = prop.rich_text?.[0]?.plain_text || '';\n    } else if (prop.type === 'select') {\n      row[key] = prop.select?.name || '';\n    } else if (prop.type === 'multi_select') {\n      row[key] = prop.multi_select?.map(s => s.name).join(', ') || '';\n    } else if (prop.type === 'date') {\n      row[key] = prop.date?.start || '';\n    } else if (prop.type === 'checkbox') {\n      row[key] = prop.checkbox ? 'TRUE' : 'FALSE';\n    } else if (prop.type === 'number') {\n      row[key] = prop.number || 0;\n    } else if (prop.type === 'url') {\n      row[key] = prop.url || '';\n    } else if (prop.type === 'email') {\n      row[key] = prop.email || '';\n    } else if (prop.type === 'phone_number') {\n      row[key] = prop.phone_number || '';\n    } else if (prop.type === 'relation') {\n      row[key] = prop.relation?.map(r => r.id).join(', ') || '';\n    } else if (prop.type === 'people') {\n      row[key] = prop.people?.map(p => p.name).join(', ') || '';\n    } else if (prop.type === 'status') {\n      row[key] = prop.status?.name || '';\n    }\n  }\n  \n  rows.push(row);\n}\n\nreturn rows.map(row => ({ json: row }));"
+      },
+      "name": "Transform to Sheets Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "clear",
+        "documentId": "={{ $node['Get Database List from Config'].json.sheetId }}",
+        "sheetName": "={{ $node['Get Database List from Config'].json.sheetName || 'Sheet1' }}",
+        "options": {}
+      },
+      "name": "Clear Existing Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1250, 200],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": "={{ $node['Get Database List from Config'].json.sheetId }}",
+        "sheetName": "={{ $node['Get Database List from Config'].json.sheetName || 'Sheet1' }}",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {}
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "name": "Append to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1250, 400],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log sync completion\nconst stats = {\n  database_id: $node['Get Database List from Config'].json.databaseId,\n  rows_synced: $input.all().length,\n  sync_time: new Date().toISOString(),\n  status: 'success'\n};\n\nreturn [{ json: stats }];"
+      },
+      "name": "Log Sync Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://knowledge-lake-api-production.up.railway.app/api/conversations/ingest",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "topic",
+              "value": "=Notion Sync: {{ $node['Get Database List from Config'].json.databaseName }}"
+            },
+            {
+              "name": "content",
+              "value": "=Synced {{ $json.rows_synced }} rows from Notion to Google Drive at {{ $json.sync_time }}"
+            },
+            {
+              "name": "agent",
+              "value": "n8n-sync"
+            },
+            {
+              "name": "userId",
+              "value": "carla"
+            },
+            {
+              "name": "date",
+              "value": "={{ new Date().toISOString().split('T')[0] }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ { businessArea: 'AAE Sync', database_id: $node['Get Database List from Config'].json.databaseId } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log to Knowledge Lake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1650, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "your-kl-auth-credential-id",
+          "name": "Knowledge Lake Auth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every 4 Hours": {
+      "main": [
+        [
+          {
+            "node": "Get Database List from Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Database List from Config": {
+      "main": [
+        [
+          {
+            "node": "Process Each Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Each Database": {
+      "main": [
+        [
+          {
+            "node": "Query Notion Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Notion Database": {
+      "main": [
+        [
+          {
+            "node": "Transform to Sheets Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to Sheets Format": {
+      "main": [
+        [
+          {
+            "node": "Clear Existing Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Existing Sheet": {
+      "main": [
+        [
+          {
+            "node": "Log Sync Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Log Sync Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Sync Stats": {
+      "main": [
+        [
+          {
+            "node": "Log to Knowledge Lake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

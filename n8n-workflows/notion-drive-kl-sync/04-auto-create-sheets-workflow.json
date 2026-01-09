@@ -1,0 +1,269 @@
+{
+  "name": "04 - Auto-Create Google Sheets from Notion Databases",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "When clicking 'Test workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Load database config\nconst config = {\n  \"databases\": [\n    {\n      \"name\": \"Master AI System\",\n      \"notion_database_id\": \"24f9440556f78033a2e0e8f4eee6f341\",\n      \"google_sheet_name\": \"Master AI System\"\n    },\n    {\n      \"name\": \"Deck Generation\",\n      \"notion_database_id\": \"27494405-56f7-8047-a148-db17477e12f3\",\n      \"google_sheet_name\": \"Deck Generation\"\n    }\n    // Add more databases from database-sync-config.json\n  ],\n  \"parent_folder_id\": \"SPECIFY_PARENT_FOLDER_ID\"\n};\n\nreturn config.databases.map(db => ({ json: db }));"
+      },
+      "name": "Load Database Config",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "get",
+        "databaseId": "={{ $json.notion_database_id }}"
+      },
+      "name": "Get Notion Database Schema",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "your-notion-credential-id",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract column names from Notion properties\nconst properties = $json.properties || {};\nconst columns = ['notion_id', 'notion_url', 'created_time', 'last_edited_time'];\n\nfor (const [propName, propSchema] of Object.entries(properties)) {\n  columns.push(propName);\n}\n\nreturn [{\n  json: {\n    database_name: $input.first().json.name,\n    sheet_name: $input.first().json.google_sheet_name,\n    columns: columns,\n    notion_database_id: $input.first().json.notion_database_id\n  }\n}];"
+      },
+      "name": "Extract Column Names",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "create",
+        "title": "={{ $json.sheet_name }}",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "sheetName": "Sheet1"
+            }
+          ]
+        },
+        "options": {
+          "folderId": {
+            "__rl": true,
+            "value": "SPECIFY_PARENT_FOLDER_ID",
+            "mode": "id"
+          }
+        }
+      },
+      "name": "Create Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1050, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "append",
+        "documentId": "={{ $json.spreadsheetId }}",
+        "sheetName": "Sheet1",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": "={{ $node['Extract Column Names'].json.columns.join(',') }}"
+        },
+        "options": {}
+      },
+      "name": "Add Header Row",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1250, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format output for tracking\nconst result = {\n  database_name: $node['Extract Column Names'].json.database_name,\n  notion_database_id: $node['Extract Column Names'].json.notion_database_id,\n  sheet_id: $json.spreadsheetId,\n  sheet_url: $json.spreadsheetUrl,\n  columns: $node['Extract Column Names'].json.columns.length,\n  status: 'created'\n};\n\nreturn [{ json: result }];"
+      },
+      "name": "Format Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_TRACKING_SHEET_ID",
+        "sheetName": "Created Sheets Log",
+        "columns": {
+          "mappingMode": "autoMapInputData"
+        },
+        "options": {}
+      },
+      "name": "Log to Tracking Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1650, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://knowledge-lake-api-production.up.railway.app/api/conversations/ingest",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "topic",
+              "value": "=Auto-Created Sheet: {{ $json.database_name }}"
+            },
+            {
+              "name": "content",
+              "value": "=Created Google Sheet '{{ $json.database_name }}' with {{ $json.columns }} columns. Sheet ID: {{ $json.sheet_id }}. URL: {{ $json.sheet_url }}"
+            },
+            {
+              "name": "agent",
+              "value": "n8n-auto-setup"
+            },
+            {
+              "name": "userId",
+              "value": "carla"
+            },
+            {
+              "name": "date",
+              "value": "={{ new Date().toISOString().split('T')[0] }}"
+            },
+            {
+              "name": "metadata",
+              "value": "={{ { businessArea: 'AAE Setup', notion_database_id: $json.notion_database_id, sheet_id: $json.sheet_id } }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Log to Knowledge Lake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1850, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "your-kl-auth-credential-id",
+          "name": "Knowledge Lake Auth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Test workflow'": {
+      "main": [
+        [
+          {
+            "node": "Load Database Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Database Config": {
+      "main": [
+        [
+          {
+            "node": "Get Notion Database Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Notion Database Schema": {
+      "main": [
+        [
+          {
+            "node": "Extract Column Names",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Column Names": {
+      "main": [
+        [
+          {
+            "node": "Create Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Add Header Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add Header Row": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Log to Tracking Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Tracking Sheet": {
+      "main": [
+        [
+          {
+            "node": "Log to Knowledge Lake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

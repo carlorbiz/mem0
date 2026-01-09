@@ -222,3 +222,5 @@ bot_query_fix.py
 test-*.sh
 conversations/exports/jsonl-exports/
 agent-conversations/fred/
+# Woodend Golf Club credentials - contains real passwords
+aae-council/WGC_Secretary_Role_Documentation.md

@@ -1,0 +1,154 @@
+{
+  "sync_configuration": {
+    "version": "1.0.0",
+    "last_updated": "2026-01-09",
+    "databases": [
+      {
+        "name": "Master AI System",
+        "notion_database_id": "24f9440556f78033a2e0e8f4eee6f341",
+        "google_sheet_id": "CREATE_NEW_SHEET",
+        "google_sheet_name": "Master AI System",
+        "sync_frequency": "every_4_hours",
+        "sync_to_knowledge_lake": true,
+        "property_mapping": {
+          "Name": "title",
+          "Status": "select",
+          "Priority": "select",
+          "Assigned To": "people",
+          "Due Date": "date",
+          "Tags": "multi_select",
+          "Description": "rich_text",
+          "URL": "url"
+        }
+      },
+      {
+        "name": "Deck Generation",
+        "notion_database_id": "27494405-56f7-8047-a148-db17477e12f3",
+        "google_sheet_id": "CREATE_NEW_SHEET",
+        "google_sheet_name": "Deck Generation",
+        "sync_frequency": "every_4_hours",
+        "sync_to_knowledge_lake": true,
+        "property_mapping": {
+          "Course Name": "title",
+          "Status": "select",
+          "Module": "select",
+          "Generated Date": "date",
+          "Gamma URL": "url",
+          "Notes": "rich_text"
+        }
+      },
+      {
+        "name": "Courses Education",
+        "notion_database_id": "FIND_THIS_ID",
+        "google_sheet_id": "CREATE_NEW_SHEET",
+        "google_sheet_name": "Courses Education",
+        "sync_frequency": "every_4_hours",
+        "sync_to_knowledge_lake": true,
+        "property_mapping": {
+          "Course Title": "title",
+          "Status": "select",
+          "Audience": "select",
+          "Launch Date": "date",
+          "Modules": "number",
+          "Description": "rich_text"
+        }
+      },
+      {
+        "name": "AI Prompts Library",
+        "notion_database_id": "FIND_THIS_ID",
+        "google_sheet_id": "CREATE_NEW_SHEET",
+        "google_sheet_name": "AI Prompts",
+        "sync_frequency": "every_4_hours",
+        "sync_to_knowledge_lake": true,
+        "property_mapping": {
+          "Prompt Name": "title",
+          "Category": "select",
+          "Agent": "select",
+          "Use Case": "rich_text",
+          "Prompt Text": "rich_text",
+          "Tags": "multi_select"
+        }
+      },
+      {
+        "name": "Secrets",
+        "notion_database_id": "FIND_THIS_ID",
+        "google_sheet_id": "CREATE_NEW_SHEET",
+        "google_sheet_name": "Secrets (Sanitized)",
+        "sync_frequency": "manual_only",
+        "sync_to_knowledge_lake": false,
+        "sanitize_before_sync": true,
+        "excluded_properties": ["API Key", "Password", "Token"],
+        "property_mapping": {
+          "Service Name": "title",
+          "Category": "select",
+          "Environment": "select",
+          "Last Updated": "date",
+          "Notes": "rich_text"
+        }
+      },
+      {
+        "name": "Agent Conversations",
+        "notion_database_id": "FIND_THIS_ID",
+        "google_sheet_id": "CREATE_NEW_SHEET",
+        "google_sheet_name": "Agent Conversations",
+        "sync_frequency": "every_4_hours",
+        "sync_to_knowledge_lake": true,
+        "property_mapping": {
+          "Topic": "title",
+          "Agent": "select",
+          "Date": "date",
+          "Status": "select",
+          "Key Insights": "rich_text",
+          "Tags": "multi_select"
+        }
+      },
+      {
+        "name": "MTMOT Projects",
+        "notion_database_id": "FIND_THIS_ID",
+        "google_sheet_id": "CREATE_NEW_SHEET",
+        "google_sheet_name": "MTMOT Projects",
+        "sync_frequency": "every_4_hours",
+        "sync_to_knowledge_lake": true,
+        "property_mapping": {
+          "Project Name": "title",
+          "Status": "status",
+          "Priority": "select",
+          "Owner": "people",
+          "Deadline": "date",
+          "Progress": "number",
+          "Description": "rich_text"
+        }
+      }
+    ],
+    "google_drive_settings": {
+      "parent_folder_id": "SPECIFY_PARENT_FOLDER_ID",
+      "folder_name": "AAE Notion Sync",
+      "create_folder_structure": true,
+      "backup_before_sync": true
+    },
+    "knowledge_lake_settings": {
+      "api_url": "https://knowledge-lake-api-production.up.railway.app",
+      "ingest_endpoint": "/api/conversations/ingest",
+      "batch_size": 10,
+      "extract_entities": true,
+      "extract_relationships": true
+    },
+    "sync_options": {
+      "clear_and_replace": true,
+      "append_only": false,
+      "update_existing": false,
+      "preserve_formatting": true,
+      "include_notion_url": true,
+      "include_sync_timestamp": true
+    }
+  },
+  "setup_instructions": {
+    "step_1": "Find Notion database IDs - use workflow 01-database-discovery",
+    "step_2": "Create Google Sheets for each database (or use workflow to auto-create)",
+    "step_3": "Update this config with actual Sheet IDs",
+    "step_4": "Import workflows into n8n",
+    "step_5": "Configure credentials in n8n (Notion API, Google Sheets, Knowledge Lake)",
+    "step_6": "Test each workflow manually before enabling schedule",
+    "step_7": "Monitor sync logs in Knowledge Lake"
+  }
+}

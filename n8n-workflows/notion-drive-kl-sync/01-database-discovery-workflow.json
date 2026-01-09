@@ -1,0 +1,99 @@
+{
+  "name": "01 - Discover Notion Databases",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "When clicking 'Test workflow'",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "search",
+        "searchText": "",
+        "options": {
+          "filter": {
+            "property": "object",
+            "value": "database"
+          }
+        }
+      },
+      "name": "Search All Databases",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "your-notion-credential-id",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract database metadata\nconst databases = [];\n\nfor (const item of $input.all()) {\n  const db = item.json;\n  databases.push({\n    id: db.id,\n    title: db.title?.[0]?.plain_text || 'Untitled',\n    url: db.url,\n    properties: Object.keys(db.properties || {}),\n    created_time: db.created_time,\n    last_edited_time: db.last_edited_time\n  });\n}\n\nreturn databases.map(db => ({ json: db }));"
+      },
+      "name": "Extract Database Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_TRACKING_SHEET_ID",
+        "sheetName": "Notion Database Inventory",
+        "columns": "id,title,url,properties,created_time,last_edited_time",
+        "options": {}
+      },
+      "name": "Save to Tracking Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [850, 300],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking 'Test workflow'": {
+      "main": [
+        [
+          {
+            "node": "Search All Databases",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search All Databases": {
+      "main": [
+        [
+          {
+            "node": "Extract Database Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Database Info": {
+      "main": [
+        [
+          {
+            "node": "Save to Tracking Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

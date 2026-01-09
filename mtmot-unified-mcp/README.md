@@ -10,7 +10,7 @@ An MCP (Model Context Protocol) server that provides unified access to Carla's A
 ## Architecture
 
 ```
-ChatGPT (Dev seat) / Claude Code / Any MCP Client
+ChatGPT (Dev seat) / Claude Code / Manus / Any MCP Client
             |
             |  MCP protocol (stdio)
             v
@@ -42,6 +42,8 @@ ChatGPT (Dev seat) / Claude Code / Any MCP Client
 - A Notion integration with API key (with **read AND write** permissions)
 - A Google Cloud service account with Drive API access (**Editor** role)
 - Knowledge Lake API running on Railway (optional but recommended)
+  - **Production URL:** `https://knowledge-lake-api-production.up.railway.app`
+  - ⚠️ **DO NOT USE:** `mem0-production-api.up.railway.app` (old/incorrect)
 
 ## Setup
 
@@ -103,6 +105,10 @@ ChatGPT (Dev seat) / Claude Code / Any MCP Client
 
 ### Knowledge Lake Tools (10)
 
+> **Production API:** `https://knowledge-lake-api-production.up.railway.app`
+> **API Version:** 2.1.0_database_persistence
+> **Health Check:** `GET /health`
+
 **Unified Search:**
 - `search_knowledge_lake` - Search across Notion + Drive + semantic memory
 
@@ -143,7 +149,7 @@ In the ChatGPT Dev console, configure the MCP server:
     "GOOGLE_CLIENT_EMAIL": "...",
     "GOOGLE_PRIVATE_KEY": "...",
     "DRIVE_KL_FOLDER_ID": "...",
-    "KNOWLEDGE_LAKE_URL": "https://your-app.railway.app",
+    "KNOWLEDGE_LAKE_URL": "https://knowledge-lake-api-production.up.railway.app",
     "KNOWLEDGE_LAKE_API_KEY": "..."
   }
 }

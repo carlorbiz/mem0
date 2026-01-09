@@ -1,0 +1,188 @@
+{
+  "name": "02 - Notion to Google Drive Sync (SAFE VERSION)",
+  "meta": {
+    "instanceId": "your-instance-id"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      },
+      "name": "Every 4 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "id": "schedule-trigger-node"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": "24f9440556f78033a2e0e8f4eee6f341",
+        "returnAll": true,
+        "options": {}
+      },
+      "name": "Query Notion Database",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "id": "notion-query-node",
+      "credentials": {
+        "notionApi": {
+          "id": "your-notion-credential-id",
+          "name": "Notion API"
+        }
+      },
+      "notes": "Using typeVersion 1 for maximum compatibility"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Transform Notion pages to Google Sheets format\n// SAFE VERSION: Compatible with older n8n versions\n\nconst items = $input.all();\nconst rows = [];\n\nfor (const item of items) {\n  const page = item.json;\n  const properties = page.properties || {};\n  \n  const row = {\n    notion_id: page.id,\n    notion_url: page.url,\n    created_time: page.created_time,\n    last_edited_time: page.last_edited_time\n  };\n  \n  // Extract property values (basic types only for safety)\n  for (const key in properties) {\n    const prop = properties[key];\n    \n    if (prop.type === 'title' && prop.title && prop.title[0]) {\n      row[key] = prop.title[0].plain_text || '';\n    } else if (prop.type === 'rich_text' && prop.rich_text && prop.rich_text[0]) {\n      row[key] = prop.rich_text[0].plain_text || '';\n    } else if (prop.type === 'select' && prop.select) {\n      row[key] = prop.select.name || '';\n    } else if (prop.type === 'date' && prop.date) {\n      row[key] = prop.date.start || '';\n    } else if (prop.type === 'checkbox') {\n      row[key] = prop.checkbox ? 'TRUE' : 'FALSE';\n    } else if (prop.type === 'number') {\n      row[key] = prop.number || 0;\n    } else if (prop.type === 'url') {\n      row[key] = prop.url || '';\n    }\n  }\n  \n  rows.push(row);\n}\n\nreturn rows.map(r => ({ json: r }));"
+      },
+      "name": "Transform to Sheets Format",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [650, 300],
+      "id": "transform-node",
+      "notes": "Using function node (typeVersion 1) for compatibility"
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "sheetId": "YOUR_GOOGLE_SHEET_ID",
+        "range": "Sheet1"
+      },
+      "name": "Clear Existing Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 2,
+      "position": [850, 200],
+      "id": "clear-sheet-node",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      },
+      "notes": "Using typeVersion 2 for broader compatibility"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "sheetId": "YOUR_GOOGLE_SHEET_ID",
+        "range": "Sheet1!A:Z",
+        "options": {
+          "valueInputMode": "USER_ENTERED"
+        }
+      },
+      "name": "Append to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 2,
+      "position": [850, 400],
+      "id": "append-sheet-node",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "your-google-credential-id",
+          "name": "Google Sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://knowledge-lake-api-production.up.railway.app/api/conversations/ingest",
+        "requestMethod": "POST",
+        "jsonParameters": true,
+        "options": {},
+        "bodyParametersJson": "={\n  \"topic\": \"Notion Sync: Master AI System\",\n  \"content\": \"Synced {{ $items().length }} rows from Notion to Google Drive\",\n  \"agent\": \"n8n-sync\",\n  \"userId\": \"carla\",\n  \"date\": \"{{ $now.format('yyyy-MM-dd') }}\",\n  \"metadata\": {\n    \"businessArea\": \"AAE Sync\",\n    \"database_id\": \"24f9440556f78033a2e0e8f4eee6f341\"\n  }\n}"
+      },
+      "name": "Log to Knowledge Lake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 2,
+      "position": [1050, 300],
+      "id": "log-kl-node",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "your-kl-auth-credential-id",
+          "name": "Knowledge Lake Auth"
+        }
+      },
+      "notes": "Using typeVersion 2 for HTTP compatibility"
+    }
+  ],
+  "connections": {
+    "Every 4 Hours": {
+      "main": [
+        [
+          {
+            "node": "Query Notion Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Notion Database": {
+      "main": [
+        [
+          {
+            "node": "Transform to Sheets Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to Sheets Format": {
+      "main": [
+        [
+          {
+            "node": "Clear Existing Sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Existing Sheet": {
+      "main": [
+        [
+          {
+            "node": "Log to Knowledge Lake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Log to Knowledge Lake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-09T00:00:00.000Z",
+  "versionId": "1"
+}

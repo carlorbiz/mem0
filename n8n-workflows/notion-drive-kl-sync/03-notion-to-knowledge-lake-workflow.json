@@ -1,0 +1,223 @@
+{
+  "name": "03 - Notion to Knowledge Lake Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */6 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Every 6 Hours",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "search",
+        "searchText": "",
+        "options": {
+          "filter": {
+            "property": "object",
+            "value": "page"
+          },
+          "sort": {
+            "direction": "descending",
+            "timestamp": "last_edited_time"
+          }
+        },
+        "returnAll": false,
+        "limit": 100
+      },
+      "name": "Get Recently Edited Pages",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "your-notion-credential-id",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "block",
+        "operation": "getAll",
+        "blockId": "={{ $json.id }}",
+        "returnAll": true
+      },
+      "name": "Get Page Content",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2,
+      "position": [650, 300],
+      "credentials": {
+        "notionApi": {
+          "id": "your-notion-credential-id",
+          "name": "Notion API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract text content from Notion blocks\nconst pageId = $input.first().json.id;\nconst pageUrl = $input.first().json.url;\nconst properties = $input.first().json.properties || {};\n\n// Get page title\nlet title = 'Untitled';\nfor (const [key, prop] of Object.entries(properties)) {\n  if (prop.type === 'title' && prop.title?.[0]?.plain_text) {\n    title = prop.title[0].plain_text;\n    break;\n  }\n}\n\n// Extract text from blocks\nconst blocks = $input.all().slice(1); // First item is the page itself\nlet content = [];\n\nfor (const block of blocks) {\n  const blockData = block.json;\n  const blockType = blockData.type;\n  \n  if (blockData[blockType]?.rich_text) {\n    const text = blockData[blockType].rich_text\n      .map(rt => rt.plain_text)\n      .join('');\n    if (text) content.push(text);\n  }\n}\n\nconst fullContent = content.join('\\n\\n');\n\n// Extract entities (simple keyword extraction)\nconst entities = [];\nconst keywords = fullContent.match(/\\b[A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*\\b/g) || [];\nconst uniqueKeywords = [...new Set(keywords)].slice(0, 10);\n\nfor (const keyword of uniqueKeywords) {\n  entities.push({\n    name: keyword,\n    entityType: 'Concept',\n    confidence: 0.7\n  });\n}\n\nreturn [{\n  json: {\n    topic: title,\n    content: fullContent,\n    agent: 'notion-sync',\n    userId: 'carla',\n    date: new Date().toISOString().split('T')[0],\n    metadata: {\n      businessArea: 'AAE',\n      notionPageId: pageId,\n      notionUrl: pageUrl,\n      source: 'notion'\n    },\n    entities: entities,\n    relationships: []\n  }\n}];"
+      },
+      "name": "Transform to KL Format",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://knowledge-lake-api-production.up.railway.app/api/conversations/ingest",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "name": "Ingest to Knowledge Lake",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1050, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "your-kl-auth-credential-id",
+          "name": "Knowledge Lake Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "combineOperation": "any"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 200,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            },
+            {
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 201,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Count successes and failures\nconst successCount = $input.all().length;\nconst totalPages = $node['Get Recently Edited Pages'].json.length;\n\nreturn [{\n  json: {\n    total_pages: totalPages,\n    ingested: successCount,\n    sync_time: new Date().toISOString(),\n    status: 'completed'\n  }\n}];"
+      },
+      "name": "Success Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log failure\nconst error = $json.error || $json.body || 'Unknown error';\n\nreturn [{\n  json: {\n    status: 'failed',\n    error: error,\n    sync_time: new Date().toISOString()\n  }\n}];"
+      },
+      "name": "Failure Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1450, 400]
+    }
+  ],
+  "connections": {
+    "Every 6 Hours": {
+      "main": [
+        [
+          {
+            "node": "Get Recently Edited Pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Recently Edited Pages": {
+      "main": [
+        [
+          {
+            "node": "Get Page Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Page Content": {
+      "main": [
+        [
+          {
+            "node": "Transform to KL Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to KL Format": {
+      "main": [
+        [
+          {
+            "node": "Ingest to Knowledge Lake",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ingest to Knowledge Lake": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Success Stats",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failure Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
