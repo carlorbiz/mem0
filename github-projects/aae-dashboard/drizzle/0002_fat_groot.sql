@@ -1,1 +1,0 @@
-ALTER TABLE "platform_integrations" ADD CONSTRAINT "platform_integrations_userId_platform_unique" UNIQUE("userId","platform");
