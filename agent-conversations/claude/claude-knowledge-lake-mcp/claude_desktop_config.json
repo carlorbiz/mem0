@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "knowledge-lake": {
+      "command": "C:\\Users\\carlo\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe",
+      "args": [
+        "C:\\Users\\carlo\\Development\\mem0-sync\\mem0\\\\agent-conversations\\claude\\claude-knowledge-lake-mcp\\claude-knowledge-lake-mcp\\server.py"
+      ],
+      "env": {
+        "KNOWLEDGE_LAKE_BASE_URL": "https://knowledge-lake-api-production.up.railway.app"
+      }
+    }
+  },
+  "preferences": {
+    "chromeExtensionEnabled": true
+  }
+}

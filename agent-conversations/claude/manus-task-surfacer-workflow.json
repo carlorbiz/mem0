@@ -1,0 +1,307 @@
+{
+  "name": "Manus Task Surfacer - Incomplete Tasks to Draft",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "45 0 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily 11:45am Melbourne",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "notes": "Cron is in UTC. 00:45 UTC = 11:45 AEDT (Melbourne)"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "getAll",
+        "databaseId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "12da15e1-369e-4bae-87a1-7f51182c978f"
+        },
+        "returnAll": false,
+        "limit": 3,
+        "filterType": "json",
+        "filterJson": "{\n  \"and\": [\n    {\n      \"or\": [\n        {\n          \"property\": \"Status\",\n          \"select\": {\n            \"equals\": \"📥 Captured\"\n          }\n        },\n        {\n          \"property\": \"Status\",\n          \"select\": {\n            \"equals\": \"🔄 Processing\"\n          }\n        }\n      ]\n    }\n  ]\n}",
+        "options": {
+          "sorts": [
+            {
+              "property": "Conversation Date",
+              "direction": "descending"
+            }
+          ]
+        }
+      },
+      "id": "notion-query",
+      "name": "Get Incomplete Tasks",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [220, 0],
+      "credentials": {
+        "notionApi": {
+          "id": "zsyuPjlrNQJvuV6i",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "task-summary",
+              "name": "taskSummary",
+              "value": "={{ $json.properties['Conversation Title'].title[0]?.plain_text || 'Untitled' }}",
+              "type": "string"
+            },
+            {
+              "id": "task-status",
+              "name": "taskStatus",
+              "value": "={{ $json.properties['Status'].select?.name || 'No status' }}",
+              "type": "string"
+            },
+            {
+              "id": "task-instructions",
+              "name": "taskInstructions",
+              "value": "={{ $json.properties['Instructions'].rich_text[0]?.plain_text || 'No instructions recorded' }}",
+              "type": "string"
+            },
+            {
+              "id": "task-date",
+              "name": "taskDate",
+              "value": "={{ $json.properties['Conversation Date'].date?.start || 'No date' }}",
+              "type": "string"
+            },
+            {
+              "id": "task-agent",
+              "name": "primaryAgent",
+              "value": "={{ $json.properties['Primary AI Agent'].select?.name || 'Unknown' }}",
+              "type": "string"
+            },
+            {
+              "id": "task-url",
+              "name": "notionUrl",
+              "value": "={{ $json.url }}",
+              "type": "string"
+            },
+            {
+              "id": "task-area",
+              "name": "businessArea",
+              "value": "={{ $json.properties['Area'].select?.name || 'Unspecified' }}",
+              "type": "string"
+            },
+            {
+              "id": "page-id",
+              "name": "pageId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "extract-fields",
+      "name": "Extract Task Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 0]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "allTasks",
+        "options": {}
+      },
+      "id": "aggregate-tasks",
+      "name": "Aggregate All Tasks",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [660, 0]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {},
+        "messages": {
+          "values": [
+            {
+              "content": "You are helping Carla communicate with Manus, her AI automation assistant. Write a professional but warm email body that:\n\n1. Lists the 3 incomplete tasks from her AI Conversations database\n2. For each task, include: Title, Status, Date, Primary Agent, Business Area, and the Instructions/prompts\n3. Asks Manus to recommend automated n8n workflows that could help complete or progress these tasks\n4. Keep the tone collaborative and action-oriented\n\nHere are the tasks:\n{{ JSON.stringify($json.allTasks, null, 2) }}\n\nFormat the email body in clear sections. Do not include a subject line - just the body. Sign off as 'Carla'.",
+              "role": "user"
+            }
+          ]
+        }
+      },
+      "id": "openai-format",
+      "name": "Format Email with AI",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [880, 0],
+      "credentials": {
+        "openAiApi": {
+          "id": "RZvxBUQqDYwaIV2y",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "Manus action this",
+        "emailType": "text",
+        "message": "={{ $json.message.content }}",
+        "options": {
+          "sendTo": "carla@carlorbiz.com.au"
+        }
+      },
+      "id": "gmail-draft",
+      "name": "Create Gmail Draft",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [1100, 0],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OXgamOyzF4XcdkJb",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "allTasks",
+        "options": {}
+      },
+      "id": "split-tasks",
+      "name": "Split Out Tasks",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [1320, 0]
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "update",
+        "pageId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.pageId }}"
+        },
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "Status",
+              "selectValue": "🔄 Processing"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "update-status",
+      "name": "Update Status to Processing",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [1540, 0],
+      "credentials": {
+        "notionApi": {
+          "id": "zsyuPjlrNQJvuV6i",
+          "name": "Notion account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily 11:45am Melbourne": {
+      "main": [
+        [
+          {
+            "node": "Get Incomplete Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Incomplete Tasks": {
+      "main": [
+        [
+          {
+            "node": "Extract Task Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Task Fields": {
+      "main": [
+        [
+          {
+            "node": "Aggregate All Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate All Tasks": {
+      "main": [
+        [
+          {
+            "node": "Format Email with AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Email with AI": {
+      "main": [
+        [
+          {
+            "node": "Create Gmail Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Gmail Draft": {
+      "main": [
+        [
+          {
+            "node": "Split Out Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Tasks": {
+      "main": [
+        [
+          {
+            "node": "Update Status to Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Australia/Melbourne"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "pinData": {}
+}
